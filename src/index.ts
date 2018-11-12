@@ -7,7 +7,10 @@ var pngData:any;
 var pngName:string;
 var canvas = document.createElement("canvas");
 
+var isZip:boolean = false;
+
 $(()=>{
+	
     console.log("hogehoge");
 
 
@@ -20,37 +23,68 @@ $(()=>{
     });
 
     $("#embed").click(()=>{
-        var dataStr = $("#output").val();
-        //var data = new TextEncoder().encode(dataStr);
+		var dataStr = $("#output").val();
+		isZip = $("#isZip").prop("checked");
 
-        var zip = new JSZip();
-        zip.generateAsync({type:"uint8array"})
-			.then((u8a)=>{
-                embedder.embed(pngData, u8a, (implantedDataURL:string)=>{
-                    console.log("complete");
-                    $("img#img").attr("src", implantedDataURL);
-                    $("#message").text("埋め込みが完了しました。");
-            
-                    var a = document.createElement("a");
-                    a.href = implantedDataURL;
-                    a.target = '_blank';
-                    a.download = pngName;
-                    a.click();
-                    URL.revokeObjectURL(a.href);
-            
-                    $("#file").val("");
-                        
+        if(isZip){
+            var zip = new JSZip();
+            zip.file("data.hvd",dataStr);
+            zip.generateAsync({type:"uint8array",compression: "DEFLATE"})
+                .then((u8a)=>{
+                    embedder.embed(pngData, u8a, (implantedDataURL:string)=>{
+                        console.log("complete");
+                        $("img#img").attr("src", implantedDataURL);
+                        $("#message").text("埋め込みが完了しました。");
+                
+                        var a = document.createElement("a");
+                        a.href = implantedDataURL;
+                        a.target = '_blank';
+                        a.download = pngName;
+                        a.click();
+                        URL.revokeObjectURL(a.href);
+                
+                        $("#file").val("");
+                            
+                    });
                 });
-            });
+    
+            }else{
+        var data = new TextEncoder().encode(dataStr);
+        embedder.embed(pngData, data, (implantedDataURL:string)=>{
+                            console.log("complete");
+                            $("img#img").attr("src", implantedDataURL);
+                            $("#message").text("埋め込みが完了しました。");
+                    
+                            var a = document.createElement("a");
+                            a.href = implantedDataURL;
+                            a.target = '_blank';
+                            a.download = pngName;
+                            a.click();
+                            URL.revokeObjectURL(a.href);
+                    
+                            $("#file").val("");
+                                
+                        });
+        
+        
 
+        }
 
 
     });
     $("#extract").click(()=>{
-        var zip = new JSZip();
-        zip.loadAsync(embedder.extract(pngData)).then((obj)=>{
-            console.log(zip);
-        })
+		isZip = $("#isZip").prop("checked");
+        if(isZip){
+            var zip = new JSZip();
+            zip.loadAsync(embedder.extract(pngData)).then((zip)=>{
+                zip.file("data.hvd").async("uint8array").then((obj)=>{
+                    console.log(new TextDecoder().decode(obj));
+                });
+            })
+       }else{
+			console.log(new TextDecoder().decode(embedder.extract(pngData)));
+
+        }
 //        $("#output").text(new TextDecoder().decode());
     });
 

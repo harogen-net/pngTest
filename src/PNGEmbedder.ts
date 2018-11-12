@@ -100,7 +100,7 @@ export class PNGEmbedder {
         });
     }
 
-        public extract(pngDataURL:string):Uint8Array {
+    public extract(pngDataURL:string):Uint8Array {
         var decoded = window.atob(pngDataURL.split(',', 2).pop());
         // Uint8Array に変換
         var png:Uint8Array = new Uint8Array(
